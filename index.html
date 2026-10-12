@@ -611,11 +611,29 @@
           card.appendChild(insurer);
         }
 
-        const phoneLink = document.createElement("a");
-        phoneLink.href = "tel:" + b.phone;
-        phoneLink.textContent = "Call business";
-        phoneLink.style.cssText = "display:inline-block;margin:8px 8px 0 0;padding:10px 12px;background:#246b45;color:white;border-radius:6px;text-decoration:none;";
-        card.appendChild(phoneLink);
+        
+const phoneLink = document.createElement("a");
+phoneLink.href = "tel:" + b.phone;
+phoneLink.textContent = "Call business";
+phoneLink.style.cssText = "display:inline-block;margin:8px 8px 0 0;padding:10px 12px;background:#246b45;color:white;border-radius:6px;text-decoration:none;";
+
+phoneLink.addEventListener("click", async function(event) {
+  event.preventDefault();
+
+  try {
+    await db.rpc("record_findlocal_event", {
+      p_business_id: b.id,
+      p_event_type: "call_click"
+    });
+  } catch (error) {
+    console.error("Call tracking error:", error);
+  }
+
+  window.location.href = phoneLink.href;
+});
+
+card.appendChild(phoneLink);
+
 
         
 const whatsappNumber = (b.whatsapp || b.phone || "").replace(/\D/g, "");
