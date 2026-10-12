@@ -208,6 +208,42 @@
       document.getElementById("payment-status").textContent =
         business.payment_status;
 
+     
+      // Load this business's statistics for the last 30 days
+      const { data: analytics, error: analyticsError } = await db.rpc(
+        "get_my_findlocal_analytics",
+        {
+          p_business_id: business.id,
+          p_days: 30
+        }
+      );
+
+      if (analyticsError) {
+        console.error("Analytics loading error:", analyticsError);
+      }
+
+      const counts = {
+        profile_view: 0,
+        search_appearance: 0,
+        whatsapp_click: 0,
+        call_click: 0
+      };
+
+      if (analytics) {
+        analytics.forEach(function(item) {
+          counts[item.event_type] = Number(item.event_count);
+        });
+      }
+
+      document.getElementById("profile-views").textContent =
+        counts.profile_view;
+      document.getElementById("search-views").textContent =
+        counts.search_appearance;
+      document.getElementById("whatsapp-clicks").textContent =
+        counts.whatsapp_click;
+      document.getElementById("call-clicks").textContent =
+        counts.call_click;
+
       businessSection.classList.remove("hidden");
       statusMessage.textContent = "Your business account is connected.";
     }
