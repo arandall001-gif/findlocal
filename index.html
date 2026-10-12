@@ -1,0 +1,324 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FindLocal | Discover Local Businesses</title>
+  <meta name="description" content="Discover and support local businesses across South Africa with FindLocal.">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: Arial, sans-serif;
+      background: #f6f7f5; color: #202b27;
+    }
+    header {
+      background: #163c32; color: white; padding: 22px 7%;
+      display: flex; justify-content: space-between;
+      align-items: center; flex-wrap: wrap; gap: 14px;
+    }
+    .brand { font-size: 27px; font-weight: bold; }
+    .brand span { color: #d9e9a5; }
+    button {
+      cursor: pointer; border: 0; border-radius: 7px;
+      padding: 12px 17px; font-weight: bold; font-size: 14px;
+    }
+    .light { background: white; color: #163c32; }
+    .green { background: #245c49; color: white; }
+    .hero {
+      padding: 65px 7%; background: #e8efe7;
+      text-align: center;
+    }
+    .hero h1 { font-size: clamp(32px, 5vw, 54px); margin: 0 0 16px; }
+    .hero p { font-size: 18px; line-height: 1.6; color: #53625b; }
+    main { max-width: 850px; margin: 35px auto; padding: 0 18px; }
+    .card {
+      background: white; padding: 27px; margin-bottom: 24px;
+      border-radius: 13px; border: 1px solid #e1e6e0;
+      box-shadow: 0 4px 16px #163c320a;
+    }
+    h2 { margin-top: 0; }
+    label { display: block; margin: 15px 0 6px; font-weight: bold; }
+    input, select, textarea {
+      width: 100%; padding: 12px; border: 1px solid #ccd5ce;
+      border-radius: 7px; font: inherit; background: white;
+    }
+    textarea { min-height: 100px; resize: vertical; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+    #message { margin-top: 15px; line-height: 1.5; overflow-wrap: anywhere; }
+    .hidden { display: none; }
+    .muted { color: #64716a; line-height: 1.6; }
+    footer { text-align: center; padding: 30px; color: #64716a; }
+    @media(max-width: 600px) {
+      .grid { grid-template-columns: 1fr; }
+      .hero { padding: 45px 6%; }
+      header { padding: 20px 5%; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">Find<span>Local</span></div>
+    <button class="light" id="accountButton" onclick="showAccount()">
+      Business login
+    </button>
+  </header>
+
+  <section class="hero">
+    <h1>Discover local. Support local.</h1>
+    <p>Find businesses, services, creators and independent sellers in your community.</p>
+    <button class="green" onclick="showAccount()">List your business</button>
+  </section>
+
+  <main>
+    <section class="card">
+      <h2>Welcome to FindLocal</h2>
+      <p class="muted">
+        FindLocal helps customers discover local South African businesses.
+        Businesses can apply for a listing and manage their details.
+        Every application must be approved before the listing goes public.
+      </p>
+      <p><strong>Founding business offer:</strong> The first 50 approved businesses
+      can qualify for 12 months free, subject to confirmation of eligibility.</p>
+    </section>
+
+    <section class="card" id="authCard">
+      <h2>Business account</h2>
+      <p class="muted">Create an account to apply for a FindLocal listing.</p>
+
+      <label for="email">Email address</label>
+      <input id="email" type="email" autocomplete="email" required
+             placeholder="you@example.com">
+
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="current-password"
+             minlength="8" required placeholder="At least 8 characters">
+
+      <div class="actions">
+        <button class="green" onclick="signUp()">Create account</button>
+        <button class="light" onclick="signIn()">Log in</button>
+      </div>
+      <p id="authMessage" role="status"></p>
+    </section>
+
+    <section class="card hidden" id="applicationCard">
+      <h2>Apply to list your business</h2>
+      <p class="muted">Your application will remain private until approved.</p>
+
+      <form id="businessForm">
+        <div class="grid">
+          <div>
+            <label for="businessName">Business name *</label>
+            <input id="businessName" required minlength="2" maxlength="120">
+          </div>
+          <div>
+            <label for="contactName">Contact person's name *</label>
+            <input id="contactName" required minlength="2" maxlength="120">
+          </div>
+          <div>
+            <label for="phone">Phone number *</label>
+            <input id="phone" type="tel" required minlength="5" maxlength="40">
+          </div>
+          <div>
+            <label for="whatsapp">WhatsApp number</label>
+            <input id="whatsapp" type="tel">
+          </div>
+          <div>
+            <label for="category">Business category *</label>
+            <select id="category" required>
+              <option value="">Choose a category</option>
+              <option>Arts and Crafts</option>
+              <option>Automotive</option>
+              <option>Beauty and Wellness</option>
+              <option>Clothing and Fashion</option>
+              <option>Food and Cakes</option>
+              <option>Home and Garden</option>
+              <option>Professional Services</option>
+              <option>Retail and Shopping</option>
+              <option>Repairs and Trades</option>
+              <option>Events and Entertainment</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div>
+            <label for="area">Suburb or service area *</label>
+            <input id="area" required placeholder="e.g. Mitchells Plain">
+          </div>
+        </div>
+
+        <label for="website">Website or social media link</label>
+        <input id="website" type="url" placeholder="https://...">
+
+        <label for="logoUrl">Logo or photo URL (optional)</label>
+        <input id="logoUrl" type="url" placeholder="https://...">
+
+        <label for="description">Describe your business *</label>
+        <textarea id="description" required minlength="5" maxlength="700"
+          placeholder="What do you offer, and who do you serve?"></textarea>
+
+        <label for="insurer">Insurance provider (optional)</label>
+        <input id="insurer" maxlength="200"
+          placeholder="Enter only if your business has relevant cover">
+
+        <div class="actions">
+          <button class="green" type="submit">Submit application</button>
+          <button class="light" type="button" onclick="signOut()">Log out</button>
+        </div>
+      </form>
+      <p id="applicationMessage" role="status"></p>
+    </section>
+  </main>
+
+  <footer>FindLocal · Connecting South African communities</footer>
+
+  <script>
+    // Your FindLocal Supabase project
+    const SUPABASE_URL = "https://eqsgekmpmbhxparuqcke.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "PASTE_YOUR_PUBLISHABLE_KEY_HERE";
+
+    let db = null;
+    let currentUser = null;
+
+    if (window.supabase &&
+        SUPABASE_PUBLISHABLE_KEY !== "PASTE_YOUR_PUBLISHABLE_KEY_HERE") {
+      db = window.supabase.createClient(
+        SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY
+      );
+    }
+
+    function showMessage(id, text) {
+      document.getElementById(id).textContent = text;
+    }
+
+    function showAccount() {
+      document.getElementById("authCard").scrollIntoView({ behavior: "smooth" });
+    }
+
+    function refreshPageState(user) {
+      currentUser = user;
+      document.getElementById("authCard").classList.toggle("hidden", !!user);
+      document.getElementById("applicationCard").classList.toggle("hidden", !user);
+      document.getElementById("accountButton").textContent =
+        user ? "Business application" : "Business login";
+    }
+
+    async function signUp() {
+      if (!db) {
+        showMessage("authMessage", "Setup still needed: add your Supabase publishable key.");
+        return;
+      }
+
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      if (!email || password.length < 8) {
+        showMessage("authMessage", "Enter a valid email and a password of at least 8 characters.");
+        return;
+      }
+
+      const { data, error } = await db.auth.signUp({ email, password });
+
+      if (error) {
+        showMessage("authMessage", error.message);
+        return;
+      }
+
+      if (data.session) {
+        refreshPageState(data.user);
+        showMessage("applicationMessage", "Account created. You can now apply.");
+      } else {
+        showMessage("authMessage",
+          "Account created. Check your email for a verification link, then log in.");
+      }
+    }
+
+    async function signIn() {
+      if (!db) {
+        showMessage("authMessage", "Setup still needed: add your Supabase publishable key.");
+        return;
+      }
+
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      const { data, error } = await db.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        showMessage("authMessage", error.message);
+        return;
+      }
+
+      refreshPageState(data.user);
+      showMessage("applicationMessage", "You're logged in. Complete your application below.");
+    }
+
+    async function signOut() {
+      if (db) {
+        const { error } = await db.auth.signOut();
+        if (error) {
+          showMessage("applicationMessage", error.message);
+          return;
+        }
+      }
+      refreshPageState(null);
+      showMessage("authMessage", "You have logged out.");
+    }
+
+    document.getElementById("businessForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      if (!db || !currentUser) {
+        showMessage("applicationMessage", "Please log in before submitting.");
+        return;
+      }
+
+      const business = {
+        user_id: currentUser.id,
+        business_name: document.getElementById("businessName").value.trim(),
+        contact_name: document.getElementById("contactName").value.trim(),
+        phone: document.getElementById("phone").value.trim(),
+        whatsapp: document.getElementById("whatsapp").value.trim() || null,
+        category: document.getElementById("category").value,
+        area: document.getElementById("area").value.trim(),
+        website: document.getElementById("website").value.trim() || null,
+        logo_url: document.getElementById("logoUrl").value.trim() || null,
+        description: document.getElementById("description").value.trim(),
+        insurer_claim: document.getElementById("insurer").value.trim() || null
+      };
+
+      const submitButton = document.querySelector('#businessForm button[type="submit"]');
+      submitButton.disabled = true;
+      showMessage("applicationMessage", "Submitting your application...");
+
+      const { error } = await db.from("businesses").insert(business);
+
+      submitButton.disabled = false;
+
+      if (error) {
+        showMessage("applicationMessage",
+          "Application not submitted: " + error.message);
+        return;
+      }
+
+      showMessage("applicationMessage",
+        "Application submitted successfully! It will remain private while awaiting approval.");
+      document.getElementById("businessForm").reset();
+    });
+
+    async function restoreSession() {
+      if (!db) return;
+      const { data, error } = await db.auth.getSession();
+      if (!error) refreshPageState(data.session?.user ?? null);
+
+      db.auth.onAuthStateChange((_event, session) => {
+        refreshPageState(session?.user ?? null);
+      });
+    }
+
+    refreshPageState(null);
+    restoreSession();
+  </script>
+</body>
+</html>
