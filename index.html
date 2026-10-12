@@ -617,16 +617,34 @@
         phoneLink.style.cssText = "display:inline-block;margin:8px 8px 0 0;padding:10px 12px;background:#246b45;color:white;border-radius:6px;text-decoration:none;";
         card.appendChild(phoneLink);
 
-        const whatsappNumber = (b.whatsapp || b.phone).replace(/\D/g, "");
-        if (whatsappNumber) {
-          const whatsappLink = document.createElement("a");
-          whatsappLink.href = "https://wa.me/" + whatsappNumber;
-          whatsappLink.target = "_blank";
-          whatsappLink.rel = "noopener noreferrer";
-          whatsappLink.textContent = "WhatsApp";
-          whatsappLink.style.cssText = "display:inline-block;margin:8px 0 0;padding:10px 12px;background:#e5f3e9;color:#203b2c;border-radius:6px;text-decoration:none;";
-          card.appendChild(whatsappLink);
-        }
+        
+const whatsappNumber = (b.whatsapp || b.phone || "").replace(/\D/g, "");
+if (whatsappNumber) {
+  const whatsappLink = document.createElement("a");
+  whatsappLink.href = "https://wa.me/" + whatsappNumber;
+  whatsappLink.target = "_blank";
+  whatsappLink.rel = "noopener noreferrer";
+  whatsappLink.textContent = "WhatsApp";
+  whatsappLink.style.cssText = "display:inline-block;margin:8px 0 0;padding:10px 12px;background:#e5f3e9;color:#203b2c;border-radius:6px;text-decoration:none;";
+
+  whatsappLink.addEventListener("click", async function(event) {
+    event.preventDefault();
+
+    try {
+      await db.rpc("record_findlocal_event", {
+        p_business_id: b.id,
+        p_event_type: "whatsapp_click"
+      });
+    } catch (error) {
+      console.error("WhatsApp tracking error:", error);
+    }
+
+    window.open(whatsappLink.href, "_blank", "noopener,noreferrer");
+  });
+
+  card.appendChild(whatsappLink);
+}
+
 
         if (b.website) {
           const website = document.createElement("a");
