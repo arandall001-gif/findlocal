@@ -1,0 +1,222 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Business Dashboard | FindLocal</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f7f4;
+      color: #203b2c;
+    }
+    header {
+      background: #203b2c;
+      color: white;
+      padding: 22px;
+    }
+    header a {
+      color: white;
+      margin-right: 18px;
+    }
+    main {
+      max-width: 1000px;
+      margin: 30px auto;
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      border: 1px solid #d5ded7;
+      border-radius: 12px;
+      padding: 22px;
+      margin-bottom: 18px;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+    }
+    .stat-number {
+      font-size: 30px;
+      font-weight: bold;
+      margin: 8px 0;
+    }
+    label {
+      display: block;
+      margin-top: 14px;
+      font-weight: bold;
+    }
+    input, textarea, button {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 12px;
+      margin-top: 6px;
+      border-radius: 7px;
+      border: 1px solid #ccd5ce;
+      font: inherit;
+    }
+    button {
+      background: #246b45;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+    .muted {
+      color: #65756a;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>FindLocal Business Portal</h1>
+    <a href="./index.html">Customer Directory</a>
+    <a href="./index.html#findlocal-directory">Find Businesses</a>
+    <button id="logout" style="width:auto;background:#fff;color:#203b2c;">
+      Log out
+    </button>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>My Business Dashboard</h2>
+      <p id="status-message">Connecting to FindLocal...</p>
+      <p class="muted" id="account-email"></p>
+    </section>
+
+    <section id="business-section" class="hidden">
+      <div class="stats">
+        <div class="card">
+          <div class="muted">Profile views</div>
+          <div class="stat-number" id="profile-views">Coming soon</div>
+          <div class="muted">Real tracking will be added next.</div>
+        </div>
+        <div class="card">
+          <div class="muted">Search appearances</div>
+          <div class="stat-number" id="search-views">Coming soon</div>
+          <div class="muted">When customers see your listing.</div>
+        </div>
+        <div class="card">
+          <div class="muted">WhatsApp clicks</div>
+          <div class="stat-number" id="whatsapp-clicks">Coming soon</div>
+          <div class="muted">Customers clicking WhatsApp.</div>
+        </div>
+        <div class="card">
+          <div class="muted">Call clicks</div>
+          <div class="stat-number" id="call-clicks">Coming soon</div>
+          <div class="muted">Customers clicking to call.</div>
+        </div>
+      </div>
+
+      <section class="card">
+        <h2>My Listing</h2>
+        <p><strong>Business:</strong> <span id="business-name"></span></p>
+        <p><strong>Application status:</strong> <span id="application-status"></span></p>
+        <p><strong>Founding slot:</strong> <span id="founding-slot"></span></p>
+        <p><strong>Free listing until:</strong> <span id="free-until"></span></p>
+        <p><strong>Plan:</strong> <span id="plan-code"></span></p>
+        <p><strong>Payment status:</strong> <span id="payment-status"></span></p>
+        <p class="muted">Your listing details can be edited here after we complete the secure update form.</p>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const SUPABASE_URL = "https://eqsgekmpmbhxparuqcke.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_oyrNT7Ftfh9JDSvg0vD2oA_oFiNtJix";
+
+    const statusMessage = document.getElementById("status-message");
+    const businessSection = document.getElementById("business-section");
+
+    let db = null;
+
+    if (
+      window.supabase &&
+      SUPABASE_PUBLISHABLE_KEY !== "PASTE_YOUR_PUBLISHABLE_KEY_HERE"
+    ) {
+      db = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY
+      );
+    }
+
+    async function loadDashboard() {
+      if (!db) {
+        statusMessage.textContent =
+          "The dashboard still needs your Supabase publishable key.";
+        return;
+      }
+
+      const { data: sessionData, error: sessionError } =
+        await db.auth.getSession();
+
+      if (sessionError || !sessionData.session) {
+        statusMessage.textContent =
+          "Please log in through the customer website first, then open this dashboard.";
+        return;
+      }
+
+      const user = sessionData.session.user;
+      document.getElementById("account-email").textContent = user.email || "";
+
+      const { data: businesses, error } = await db
+        .from("businesses")
+        .select(
+          "id,business_name,application_status,founding_slot,founding_free_until,plan_code,payment_status"
+        )
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        statusMessage.textContent =
+          "Could not load your business details. Please refresh and try again.";
+        console.error(error);
+        return;
+      }
+
+      if (!businesses || businesses.length === 0) {
+        statusMessage.textContent =
+          "You are logged in, but no business application was found for this account.";
+        return;
+      }
+
+      const business = businesses[0];
+
+      document.getElementById("business-name").textContent =
+        business.business_name;
+      document.getElementById("application-status").textContent =
+        business.application_status;
+      document.getElementById("founding-slot").textContent =
+        business.founding_slot ?? "Not allocated";
+      document.getElementById("free-until").textContent =
+        business.founding_free_until || "Not applicable";
+      document.getElementById("plan-code").textContent =
+        business.plan_code;
+      document.getElementById("payment-status").textContent =
+        business.payment_status;
+
+      businessSection.classList.remove("hidden");
+      statusMessage.textContent = "Your business account is connected.";
+    }
+
+    document.getElementById("logout").addEventListener("click", async () => {
+      if (db) {
+        await db.auth.signOut();
+      }
+      window.location.href = "./index.html";
+    });
+
+    loadDashboard();
+  </script>
+</body>
+</html>
