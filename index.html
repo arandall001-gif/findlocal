@@ -319,6 +319,166 @@
 
     refreshPageState(null);
     restoreSession();
+  
+/* FindLocal Admin Dashboard */
+(function () {
+  if (!db) return;
+
+  const panel = document.createElement("section");
+  panel.id = "findlocal-admin-panel";
+  panel.style.cssText =
+    "display:none;max-width:1000px;margin:30px auto;padding:24px;" +
+    "border:1px solid #d5ded7;border-radius:14px;background:#fff;" +
+    "color:#203b2c;font-family:Arial,sans-serif;";
+
+  panel.innerHTML = `
+    <h2>FindLocal Admin Dashboard</h2>
+    <p>Review business applications before they appear publicly.</p>
+    <p id="fl-admin-message">Checking administrator access...</p>
+    <div id="fl-pending-list"></div>
+  `;
+
+  document.body.appendChild(panel);
+
+  const message = panel.querySelector("#fl-admin-message");
+  const list = panel.querySelector("#fl-pending-list");
+
+  async function loadAdminDashboard() {
+    const { data: userResult, error: userError } =
+      await db.auth.getUser();
+
+    if (userError || !userResult.user) {
+      panel.style.display = "none";
+      return;
+    }
+
+    const { data: isAdmin, error: adminError } =
+      await db.rpc("is_findlocal_admin");
+
+    if (adminError || isAdmin !== true) {
+      panel.style.display = "none";
+      return;
+    }
+
+    panel.style.display = "block";
+    message.textContent = "Administrator access confirmed.";
+    list.replaceChildren();
+
+    const { data: businesses, error } = await db
+      .from("businesses")
+      .select(
+        "id,business_name,contact_name,phone,whatsapp,category,area,description,created_at"
+      )
+      .eq("application_status", "pending")
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      message.textContent =
+        "Could not load applications. Please check database permissions.";
+      return;
+    }
+
+    if (!businesses || businesses.length === 0) {
+      message.textContent = "No pending applications.";
+      return;
+    }
+
+    message.textContent =
+      businesses.length + " pending application(s).";
+
+    businesses.forEach(function (business) {
+      const card = document.createElement("article");
+      card.style.cssText =
+        "padding:16px;margin:14px 0;border:1px solid #d5ded7;" +
+        "border-radius:10px;";
+
+      const heading = document.createElement("h3");
+      heading.textContent = business.business_name;
+
+      const details = document.createElement("p");
+      details.textContent =
+        "Contact: " + business.contact_name +
+        " | Phone: " + business.phone +
+        " | Category: " + business.category +
+        " | Area: " + business.area;
+
+      const description = document.createElement("p");
+      description.textContent = business.description;
+
+      const approve = document.createElement("button");
+      approve.textContent = "Approve";
+      approve.style.cssText =
+        "background:#246b45;color:white;padding:10px 16px;" +
+        "border:0;border-radius:6px;margin-right:10px;cursor:pointer;";
+
+      const reject = document.createElement("button");
+      reject.textContent = "Reject";
+      reject.style.cssText =
+        "background:#a83232;color:white;padding:10px 16px;" +
+        "border:0;border-radius:6px;cursor:pointer;";
+
+      async function review(decision, button) {
+        const action = decision === "approve" ? "approve" : "reject";
+        const confirmed = window.confirm(
+          "Are you sure you want to " + action + " " +
+          business.business_name + "?"
+        );
+
+        if (!confirmed) return;
+
+        approve.disabled = true;
+        reject.disabled = true;
+        message.textContent = "Processing review...";
+
+        const { data, error: reviewError } = await db.rpc(
+          "review_findlocal_business",
+          {
+            p_business_id: business.id,
+            p_decision: decision
+          }
+        );
+
+        if (reviewError) {
+          message.textContent =
+            "Review failed: " + reviewError.message;
+          approve.disabled = false;
+          reject.disabled = false;
+          return;
+        }
+
+        if (decision === "approve") {
+          message.textContent =
+            "Business approved. Founding slot: " +
+            (data && data.founding_slot
+              ? data.founding_slot
+              : "check database");
+        } else {
+          message.textContent = "Business rejected.";
+        }
+
+        await loadAdminDashboard();
+      }
+
+      approve.addEventListener("click", function () {
+        review("approve", approve);
+      });
+
+      reject.addEventListener("click", function () {
+        review("reject", reject);
+      });
+
+      card.append(heading, details, description, approve, reject);
+      list.appendChild(card);
+    });
+  }
+
+  loadAdminDashboard();
+
+  db.auth.onAuthStateChange(function () {
+    loadAdminDashboard();
+  });
+})();
+
   </script>
 </body>
 </html>
