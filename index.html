@@ -6,134 +6,413 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FindLocal | Discover Local Businesses</title>
   <meta name="description" content="Discover and support local businesses across South Africa with FindLocal.">
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      margin: 0; font-family: Arial, sans-serif;
-      background: #f6f7f5; color: #202b27;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f6f7f5;
+      color: #202b27;
     }
+
     header {
-      background: #163c32; color: white; padding: 22px 7%;
-      display: flex; justify-content: space-between;
-      align-items: center; flex-wrap: wrap; gap: 14px;
+      background: #163c32;
+      color: white;
+      padding: 22px 7%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
     }
-    .brand { font-size: 27px; font-weight: bold; }
-    .brand span { color: #d9e9a5; }
+
+    .brand {
+      font-size: 27px;
+      font-weight: bold;
+    }
+
+    .brand span {
+      color: #d9e9a5;
+    }
+
     button {
-      cursor: pointer; border: 0; border-radius: 7px;
-      padding: 12px 17px; font-weight: bold; font-size: 14px;
+      cursor: pointer;
+      border: 0;
+      border-radius: 7px;
+      padding: 12px 17px;
+      font-weight: bold;
+      font-size: 14px;
     }
-    .light { background: white; color: #163c32; }
-    .green { background: #245c49; color: white; }
-    .hero {
-      padding: 65px 7%; background: #e8efe7;
-      text-align: center;
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
-    .hero h1 { font-size: clamp(32px, 5vw, 54px); margin: 0 0 16px; }
-    .hero p { font-size: 18px; line-height: 1.6; color: #53625b; }
-    main { max-width: 850px; margin: 35px auto; padding: 0 18px; }
+
+    .light {
+      background: white;
+      color: #163c32;
+    }
+
+    .green {
+      background: #245c49;
+      color: white;
+    }
+
+    main {
+      max-width: 850px;
+      margin: 35px auto;
+      padding: 0 18px;
+    }
+
     .card {
-      background: white; padding: 27px; margin-bottom: 24px;
-      border-radius: 13px; border: 1px solid #e1e6e0;
+      background: white;
+      padding: 27px;
+      margin-bottom: 24px;
+      border-radius: 13px;
+      border: 1px solid #e1e6e0;
       box-shadow: 0 4px 16px #163c320a;
     }
-    h2 { margin-top: 0; }
-    label { display: block; margin: 15px 0 6px; font-weight: bold; }
-    input, select, textarea {
-      width: 100%; padding: 12px; border: 1px solid #ccd5ce;
-      border-radius: 7px; font: inherit; background: white;
+
+    h2 {
+      margin-top: 0;
     }
-    textarea { min-height: 100px; resize: vertical; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
-    #message { margin-top: 15px; line-height: 1.5; overflow-wrap: anywhere; }
-    .hidden { display: none; }
-    .muted { color: #64716a; line-height: 1.6; }
-    footer { text-align: center; padding: 30px; color: #64716a; }
-    @media(max-width: 600px) {
-      .grid { grid-template-columns: 1fr; }
-      .hero { padding: 45px 6%; }
-      header { padding: 20px 5%; }
+
+    label {
+      display: block;
+      margin: 15px 0 6px;
+      font-weight: bold;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccd5ce;
+      border-radius: 7px;
+      font: inherit;
+      background: white;
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    #message {
+      margin-top: 15px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .muted {
+      color: #64716a;
+      line-height: 1.6;
+    }
+
+    footer {
+      text-align: center;
+      padding: 30px;
+      color: #64716a;
+    }
+
+    /* Public business directory */
+    #findlocal-directory {
+      max-width: 1100px;
+      margin: 28px auto 40px;
+      padding: 24px;
+      font-family: Arial, sans-serif;
+      color: #203b2c;
+    }
+
+    #findlocal-directory h1 {
+      font-size: clamp(28px, 4vw, 38px);
+      margin: 0 0 8px;
+    }
+
+    #findlocal-directory .directory-intro {
+      color: #64716a;
+      line-height: 1.6;
+    }
+
+    #fl-search {
+      width: 100%;
+      padding: 14px;
+      margin: 12px 0;
+      border: 1px solid #ccd5ce;
+      border-radius: 8px;
+      box-sizing: border-box;
+    }
+
+    .directory-filters {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .directory-filters select {
+      flex: 1;
+      min-width: 200px;
+      padding: 12px;
+      border: 1px solid #ccd5ce;
+      border-radius: 8px;
+    }
+
+    #fl-business-results {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .fl-business-card {
+      border: 1px solid #d5ded7;
+      border-radius: 12px;
+      padding: 18px;
+      background: #fff;
+      overflow-wrap: anywhere;
+    }
+
+    .fl-business-card h3 {
+      margin: 0 0 8px;
+      font-size: 21px;
+    }
+
+    .fl-business-card .fl-category-area {
+      color: #55705e;
+      font-weight: bold;
+    }
+
+    .fl-business-card img {
+      max-width: 100%;
+      max-height: 120px;
+      object-fit: contain;
+      margin-bottom: 10px;
+    }
+
+    .fl-contact-link {
+      display: inline-block;
+      margin: 8px 8px 0 0;
+      padding: 10px 12px;
+      background: #246b45;
+      color: white;
+      border-radius: 6px;
+      text-decoration: none;
+    }
+
+    .fl-whatsapp-link {
+      display: inline-block;
+      margin: 8px 0 0;
+      padding: 10px 12px;
+      background: #e5f3e9;
+      color: #203b2c;
+      border-radius: 6px;
+      text-decoration: none;
+    }
+
+    .fl-website-link {
+      display: block;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 600px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      header {
+        padding: 20px 5%;
+      }
+
+      #findlocal-directory {
+        padding: 18px;
+      }
+
+      .directory-filters select {
+        min-width: 100%;
+      }
     }
   </style>
 </head>
+
 <body>
+
+  <!-- TOP HEADER -->
   <header>
     <div class="brand">Find<span>Local</span></div>
-    <button class="light" id="accountButton" onclick="showAccount()">
-      Business login
+
+    <button
+      class="light"
+      id="accountButton"
+      onclick="showAccount()"
+    >
+      Business Login
     </button>
   </header>
 
-  
-<section class="hero">
-  <h1>Find what you're looking for.</h1>
-  <p>Discover local businesses, services, creators and independent sellers in your community.</p>
+  <!-- PUBLIC DIRECTORY: NOW AT THE TOP -->
+  <section id="findlocal-directory">
+    <h1>Find Local Businesses</h1>
 
-  <button class="green" onclick="document.getElementById('findlocal-directory').scrollIntoView({behavior:'smooth'})">
-    Explore Businesses
-  </button>
+    <p class="directory-intro">
+      Discover local South African businesses, explore services in your area,
+      and contact businesses directly.
+    </p>
 
-  <button class="light" onclick="showAccount()">
-    List Your Business
-  </button>
-</section>
+    <input
+      id="fl-search"
+      type="search"
+      placeholder="Search business names or descriptions..."
+      aria-label="Search businesses"
+    >
 
+    <div class="directory-filters">
+      <select id="fl-category" aria-label="Filter by category">
+        <option value="">All categories</option>
+      </select>
 
+      <select id="fl-area" aria-label="Filter by area">
+        <option value="">All areas</option>
+      </select>
+    </div>
+
+    <p id="fl-directory-message" role="status">
+      Loading approved businesses...
+    </p>
+
+    <div id="fl-business-results"></div>
+  </section>
+
+  <!-- BUSINESS ACCOUNT AND APPLICATION AREA -->
   <main>
+
     <section class="card">
       <h2>Welcome to FindLocal</h2>
+
       <p class="muted">
         FindLocal helps customers discover local South African businesses.
         Businesses can apply for a listing and manage their details.
         Every application must be approved before the listing goes public.
       </p>
-      <p><strong>Founding business offer:</strong> The first 50 approved businesses
-      can qualify for 12 months free, subject to confirmation of eligibility.</p>
+
+      <p>
+        <strong>Founding business offer:</strong>
+        The first 50 approved businesses can qualify for 12 months free,
+        subject to confirmation of eligibility.
+      </p>
     </section>
 
+    <!-- BUSINESS LOGIN -->
     <section class="card" id="authCard">
-      <h2>Business account</h2>
-      <p class="muted">Create an account to apply for a FindLocal listing.</p>
+      <h2>Business Account</h2>
+
+      <p class="muted">
+        Create an account to apply for a FindLocal listing.
+      </p>
 
       <label for="email">Email address</label>
-      <input id="email" type="email" autocomplete="email" required
-             placeholder="you@example.com">
+      <input
+        id="email"
+        type="email"
+        autocomplete="email"
+        required
+        placeholder="you@example.com"
+      >
 
       <label for="password">Password</label>
-      <input id="password" type="password" autocomplete="current-password"
-             minlength="8" required placeholder="At least 8 characters">
+      <input
+        id="password"
+        type="password"
+        autocomplete="current-password"
+        minlength="8"
+        required
+        placeholder="At least 8 characters"
+      >
 
       <div class="actions">
-        <button class="green" onclick="signUp()">Create account</button>
-        <button class="light" onclick="signIn()">Log in</button>
+        <button class="green" onclick="signUp()">
+          Create Account
+        </button>
+
+        <button class="light" onclick="signIn()">
+          Log In
+        </button>
       </div>
+
       <p id="authMessage" role="status"></p>
     </section>
 
+    <!-- BUSINESS APPLICATION -->
     <section class="card hidden" id="applicationCard">
-      <h2>Apply to list your business</h2>
-      <p class="muted">Your application will remain private until approved.</p>
+      <h2>Apply to List Your Business</h2>
+
+      <p class="muted">
+        Your application will remain private until approved.
+      </p>
 
       <form id="businessForm">
         <div class="grid">
+
           <div>
             <label for="businessName">Business name *</label>
-            <input id="businessName" required minlength="2" maxlength="120">
+            <input
+              id="businessName"
+              required
+              minlength="2"
+              maxlength="120"
+            >
           </div>
+
           <div>
             <label for="contactName">Contact person's name *</label>
-            <input id="contactName" required minlength="2" maxlength="120">
+            <input
+              id="contactName"
+              required
+              minlength="2"
+              maxlength="120"
+            >
           </div>
+
           <div>
             <label for="phone">Phone number *</label>
-            <input id="phone" type="tel" required minlength="5" maxlength="40">
+            <input
+              id="phone"
+              type="tel"
+              required
+              minlength="5"
+              maxlength="40"
+            >
           </div>
+
           <div>
             <label for="whatsapp">WhatsApp number</label>
             <input id="whatsapp" type="tel">
           </div>
+
           <div>
             <label for="category">Business category *</label>
             <select id="category" required>
@@ -151,49 +430,90 @@
               <option>Other</option>
             </select>
           </div>
+
           <div>
             <label for="area">Suburb or service area *</label>
-            <input id="area" required placeholder="e.g. Mitchells Plain">
+            <input
+              id="area"
+              required
+              placeholder="e.g. Mitchells Plain"
+            >
           </div>
+
         </div>
 
         <label for="website">Website or social media link</label>
-        <input id="website" type="url" placeholder="https://...">
+        <input
+          id="website"
+          type="url"
+          placeholder="https://..."
+        >
 
         <label for="logoUrl">Logo or photo URL (optional)</label>
-        <input id="logoUrl" type="url" placeholder="https://...">
+        <input
+          id="logoUrl"
+          type="url"
+          placeholder="https://..."
+        >
 
         <label for="description">Describe your business *</label>
-        <textarea id="description" required minlength="5" maxlength="700"
-          placeholder="What do you offer, and who do you serve?"></textarea>
+        <textarea
+          id="description"
+          required
+          minlength="5"
+          maxlength="700"
+          placeholder="What do you offer, and who do you serve?"
+        ></textarea>
 
         <label for="insurer">Insurance provider (optional)</label>
-        <input id="insurer" maxlength="200"
-          placeholder="Enter only if your business has relevant cover">
+        <input
+          id="insurer"
+          maxlength="200"
+          placeholder="Enter only if your business has relevant cover"
+        >
 
         <div class="actions">
-          <button class="green" type="submit">Submit application</button>
-          <button class="light" type="button" onclick="signOut()">Log out</button>
+          <button class="green" type="submit">
+            Submit Application
+          </button>
+
+          <button
+            class="light"
+            type="button"
+            onclick="signOut()"
+          >
+            Log Out
+          </button>
         </div>
       </form>
+
       <p id="applicationMessage" role="status"></p>
     </section>
+
   </main>
 
-  <footer>FindLocal · Connecting South African communities</footer>
+  <footer>
+    FindLocal · Connecting South African communities
+  </footer>
 
+  <!-- SUPABASE, BUSINESS ACCOUNTS AND ADMIN DASHBOARD -->
   <script>
-    // Your FindLocal Supabase project
-    const SUPABASE_URL = "https://eqsgekmpmbhxparuqcke.supabase.co";
-    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_oyrNT7Ftfh9JDSvg0vD2oA_oFiNtJix";
+    const SUPABASE_URL =
+      "https://eqsgekmpmbhxparuqcke.supabase.co";
+
+    const SUPABASE_PUBLISHABLE_KEY =
+      "sb_publishable_oyrNT7Ftfh9JDSvg0vD2oA_oFiNtJix";
 
     let db = null;
     let currentUser = null;
 
-    if (window.supabase &&
-        SUPABASE_PUBLISHABLE_KEY !== "PASTE_YOUR_PUBLISHABLE_KEY_HERE") {
+    if (
+      window.supabase &&
+      SUPABASE_PUBLISHABLE_KEY !== "PASTE_YOUR_PUBLISHABLE_KEY_HERE"
+    ) {
       db = window.supabase.createClient(
-        SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY
+        SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY
       );
     }
 
@@ -202,32 +522,58 @@
     }
 
     function showAccount() {
-      document.getElementById("authCard").scrollIntoView({ behavior: "smooth" });
+      const target = currentUser
+        ? document.getElementById("applicationCard")
+        : document.getElementById("authCard");
+
+      target.classList.remove("hidden");
+
+      target.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
     }
 
     function refreshPageState(user) {
       currentUser = user;
-      document.getElementById("authCard").classList.toggle("hidden", !!user);
-      document.getElementById("applicationCard").classList.toggle("hidden", !user);
+
+      document.getElementById("authCard")
+        .classList.toggle("hidden", !!user);
+
+      document.getElementById("applicationCard")
+        .classList.toggle("hidden", !user);
+
       document.getElementById("accountButton").textContent =
-        user ? "Business application" : "Business login";
+        user ? "Business Application" : "Business Login";
     }
 
     async function signUp() {
       if (!db) {
-        showMessage("authMessage", "Setup still needed: add your Supabase publishable key.");
+        showMessage(
+          "authMessage",
+          "Setup still needed: check your Supabase publishable key."
+        );
         return;
       }
 
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value;
+      const email =
+        document.getElementById("email").value.trim();
+
+      const password =
+        document.getElementById("password").value;
 
       if (!email || password.length < 8) {
-        showMessage("authMessage", "Enter a valid email and a password of at least 8 characters.");
+        showMessage(
+          "authMessage",
+          "Enter a valid email and a password of at least 8 characters."
+        );
         return;
       }
 
-      const { data, error } = await db.auth.signUp({ email, password });
+      const { data, error } = await db.auth.signUp({
+        email,
+        password
+      });
 
       if (error) {
         showMessage("authMessage", error.message);
@@ -236,23 +582,50 @@
 
       if (data.session) {
         refreshPageState(data.user);
-        showMessage("applicationMessage", "Account created. You can now apply.");
+
+        showMessage(
+          "applicationMessage",
+          "Account created. You can now apply."
+        );
+
+        document.getElementById("applicationCard")
+          .scrollIntoView({ behavior: "smooth" });
       } else {
-        showMessage("authMessage",
-          "Account created. Check your email for a verification link, then log in.");
+        showMessage(
+          "authMessage",
+          "Account created. Check your email for a verification link, then log in."
+        );
       }
     }
 
     async function signIn() {
       if (!db) {
-        showMessage("authMessage", "Setup still needed: add your Supabase publishable key.");
+        showMessage(
+          "authMessage",
+          "Setup still needed: check your Supabase publishable key."
+        );
         return;
       }
 
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value;
+      const email =
+        document.getElementById("email").value.trim();
 
-      const { data, error } = await db.auth.signInWithPassword({ email, password });
+      const password =
+        document.getElementById("password").value;
+
+      if (!email || !password) {
+        showMessage(
+          "authMessage",
+          "Enter your email address and password."
+        );
+        return;
+      }
+
+      const { data, error } =
+        await db.auth.signInWithPassword({
+          email,
+          password
+        });
 
       if (error) {
         showMessage("authMessage", error.message);
@@ -260,442 +633,542 @@
       }
 
       refreshPageState(data.user);
-      showMessage("applicationMessage", "You're logged in. Complete your application below.");
+
+      showMessage(
+        "applicationMessage",
+        "You're logged in. Complete your application below."
+      );
+
+      document.getElementById("applicationCard")
+        .scrollIntoView({ behavior: "smooth" });
     }
 
     async function signOut() {
       if (db) {
         const { error } = await db.auth.signOut();
+
         if (error) {
           showMessage("applicationMessage", error.message);
           return;
         }
       }
+
       refreshPageState(null);
       showMessage("authMessage", "You have logged out.");
     }
 
-    document.getElementById("businessForm").addEventListener("submit", async (event) => {
-      event.preventDefault();
+    document
+      .getElementById("businessForm")
+      .addEventListener("submit", async function(event) {
+        event.preventDefault();
 
-      if (!db || !currentUser) {
-        showMessage("applicationMessage", "Please log in before submitting.");
-        return;
-      }
+        if (!db || !currentUser) {
+          showMessage(
+            "applicationMessage",
+            "Please log in before submitting."
+          );
+          return;
+        }
 
-      const business = {
-        user_id: currentUser.id,
-        business_name: document.getElementById("businessName").value.trim(),
-        contact_name: document.getElementById("contactName").value.trim(),
-        phone: document.getElementById("phone").value.trim(),
-        whatsapp: document.getElementById("whatsapp").value.trim() || null,
-        category: document.getElementById("category").value,
-        area: document.getElementById("area").value.trim(),
-        website: document.getElementById("website").value.trim() || null,
-        logo_url: document.getElementById("logoUrl").value.trim() || null,
-        description: document.getElementById("description").value.trim(),
-        insurer_claim: document.getElementById("insurer").value.trim() || null
-      };
+        const business = {
+          user_id: currentUser.id,
+          business_name:
+            document.getElementById("businessName").value.trim(),
+          contact_name:
+            document.getElementById("contactName").value.trim(),
+          phone:
+            document.getElementById("phone").value.trim(),
+          whatsapp:
+            document.getElementById("whatsapp").value.trim() || null,
+          category:
+            document.getElementById("category").value,
+          area:
+            document.getElementById("area").value.trim(),
+          website:
+            document.getElementById("website").value.trim() || null,
+          logo_url:
+            document.getElementById("logoUrl").value.trim() || null,
+          description:
+            document.getElementById("description").value.trim(),
+          insurer_claim:
+            document.getElementById("insurer").value.trim() || null
+        };
 
-      const submitButton = document.querySelector('#businessForm button[type="submit"]');
-      submitButton.disabled = true;
-      showMessage("applicationMessage", "Submitting your application...");
+        const submitButton = document.querySelector(
+          '#businessForm button[type="submit"]'
+        );
 
-      const { error } = await db.from("businesses").insert(business);
+        submitButton.disabled = true;
 
-      submitButton.disabled = false;
+        showMessage(
+          "applicationMessage",
+          "Submitting your application..."
+        );
 
-      if (error) {
-        showMessage("applicationMessage",
-          "Application not submitted: " + error.message);
-        return;
-      }
+        try {
+          const { error } = await db
+            .from("businesses")
+            .insert(business);
 
-      showMessage("applicationMessage",
-        "Application submitted successfully! It will remain private while awaiting approval.");
-      document.getElementById("businessForm").reset();
-    });
+          if (error) {
+            showMessage(
+              "applicationMessage",
+              "Application not submitted: " + error.message
+            );
+            return;
+          }
+
+          showMessage(
+            "applicationMessage",
+            "Application submitted successfully! It will remain private while awaiting approval."
+          );
+
+          document.getElementById("businessForm").reset();
+
+        } catch (error) {
+          showMessage(
+            "applicationMessage",
+            "Something went wrong. Please try again."
+          );
+        } finally {
+          submitButton.disabled = false;
+        }
+      });
 
     async function restoreSession() {
       if (!db) return;
-      const { data, error } = await db.auth.getSession();
-      if (!error) refreshPageState(data.session?.user ?? null);
 
-      db.auth.onAuthStateChange((_event, session) => {
+      const { data, error } = await db.auth.getSession();
+
+      if (!error) {
+        refreshPageState(data.session?.user ?? null);
+      }
+
+      db.auth.onAuthStateChange(function(_event, session) {
         refreshPageState(session?.user ?? null);
       });
     }
 
     refreshPageState(null);
     restoreSession();
-  
-/* FindLocal Admin Dashboard */
-(function () {
-  if (!db) return;
 
-  const panel = document.createElement("section");
-  panel.id = "findlocal-admin-panel";
-  panel.style.cssText =
-    "display:none;max-width:1000px;margin:30px auto;padding:24px;" +
-    "border:1px solid #d5ded7;border-radius:14px;background:#fff;" +
-    "color:#203b2c;font-family:Arial,sans-serif;";
+    /* FINDLOCAL ADMIN DASHBOARD */
+    (function() {
+      if (!db) return;
 
-  panel.innerHTML = `
-    <h2>FindLocal Admin Dashboard</h2>
-    <p>Review business applications before they appear publicly.</p>
-    <p id="fl-admin-message">Checking administrator access...</p>
-    <div id="fl-pending-list"></div>
-  `;
+      const panel = document.createElement("section");
 
-  document.body.appendChild(panel);
+      panel.id = "findlocal-admin-panel";
 
-  const message = panel.querySelector("#fl-admin-message");
-  const list = panel.querySelector("#fl-pending-list");
+      panel.style.cssText =
+        "display:none;max-width:1000px;margin:30px auto;padding:24px;" +
+        "border:1px solid #d5ded7;border-radius:14px;background:#fff;" +
+        "color:#203b2c;font-family:Arial,sans-serif;";
 
-  async function loadAdminDashboard() {
-    const { data: userResult, error: userError } =
-      await db.auth.getUser();
+      panel.innerHTML = `
+        <h2>FindLocal Admin Dashboard</h2>
+        <p>Review business applications before they appear publicly.</p>
+        <p id="fl-admin-message">Checking administrator access...</p>
+        <div id="fl-pending-list"></div>
+      `;
 
-    if (userError || !userResult.user) {
-      panel.style.display = "none";
-      return;
-    }
+      document.body.appendChild(panel);
 
-    const { data: isAdmin, error: adminError } =
-      await db.rpc("is_findlocal_admin");
+      const message = panel.querySelector("#fl-admin-message");
+      const list = panel.querySelector("#fl-pending-list");
 
-    if (adminError || isAdmin !== true) {
-      panel.style.display = "none";
-      return;
-    }
+      async function loadAdminDashboard() {
+        const { data: userResult, error: userError } =
+          await db.auth.getUser();
 
-    panel.style.display = "block";
-    message.textContent = "Administrator access confirmed.";
-    list.replaceChildren();
-
-    const { data: businesses, error } = await db
-      .from("businesses")
-      .select(
-        "id,business_name,contact_name,phone,whatsapp,category,area,description,created_at"
-      )
-      .eq("application_status", "pending")
-      .order("created_at", { ascending: true });
-
-    if (error) {
-      message.textContent =
-        "Could not load applications. Please check database permissions.";
-      return;
-    }
-
-    if (!businesses || businesses.length === 0) {
-      message.textContent = "No pending applications.";
-      return;
-    }
-
-    message.textContent =
-      businesses.length + " pending application(s).";
-
-    businesses.forEach(function (business) {
-      const card = document.createElement("article");
-      card.style.cssText =
-        "padding:16px;margin:14px 0;border:1px solid #d5ded7;" +
-        "border-radius:10px;";
-
-      const heading = document.createElement("h3");
-      heading.textContent = business.business_name;
-
-      const details = document.createElement("p");
-      details.textContent =
-        "Contact: " + business.contact_name +
-        " | Phone: " + business.phone +
-        " | Category: " + business.category +
-        " | Area: " + business.area;
-
-      const description = document.createElement("p");
-      description.textContent = business.description;
-
-      const approve = document.createElement("button");
-      approve.textContent = "Approve";
-      approve.style.cssText =
-        "background:#246b45;color:white;padding:10px 16px;" +
-        "border:0;border-radius:6px;margin-right:10px;cursor:pointer;";
-
-      const reject = document.createElement("button");
-      reject.textContent = "Reject";
-      reject.style.cssText =
-        "background:#a83232;color:white;padding:10px 16px;" +
-        "border:0;border-radius:6px;cursor:pointer;";
-
-      async function review(decision, button) {
-        const action = decision === "approve" ? "approve" : "reject";
-        const confirmed = window.confirm(
-          "Are you sure you want to " + action + " " +
-          business.business_name + "?"
-        );
-
-        if (!confirmed) return;
-
-        approve.disabled = true;
-        reject.disabled = true;
-        message.textContent = "Processing review...";
-
-        const { data, error: reviewError } = await db.rpc(
-          "review_findlocal_business",
-          {
-            p_business_id: business.id,
-            p_decision: decision
-          }
-        );
-
-        if (reviewError) {
-          message.textContent =
-            "Review failed: " + reviewError.message;
-          approve.disabled = false;
-          reject.disabled = false;
+        if (userError || !userResult.user) {
+          panel.style.display = "none";
           return;
         }
 
-        if (decision === "approve") {
-          message.textContent =
-            "Business approved. Founding slot: " +
-            (data && data.founding_slot
-              ? data.founding_slot
-              : "check database");
-        } else {
-          message.textContent = "Business rejected.";
+        const { data: isAdmin, error: adminError } =
+          await db.rpc("is_findlocal_admin");
+
+        if (adminError || isAdmin !== true) {
+          panel.style.display = "none";
+          return;
         }
 
-        await loadAdminDashboard();
+        panel.style.display = "block";
+        message.textContent = "Administrator access confirmed.";
+        list.replaceChildren();
+
+        const { data: businesses, error } = await db
+          .from("businesses")
+          .select(
+            "id,business_name,contact_name,phone,whatsapp,category,area,description,created_at"
+          )
+          .eq("application_status", "pending")
+          .order("created_at", { ascending: true });
+
+        if (error) {
+          message.textContent =
+            "Could not load applications. Please check database permissions.";
+          return;
+        }
+
+        if (!businesses || businesses.length === 0) {
+          message.textContent = "No pending applications.";
+          return;
+        }
+
+        message.textContent =
+          businesses.length + " pending application(s).";
+
+        businesses.forEach(function(business) {
+          const card = document.createElement("article");
+
+          card.style.cssText =
+            "padding:16px;margin:14px 0;border:1px solid #d5ded7;" +
+            "border-radius:10px;";
+
+          const heading = document.createElement("h3");
+          heading.textContent = business.business_name;
+
+          const details = document.createElement("p");
+
+          details.textContent =
+            "Contact: " + business.contact_name +
+            " | Phone: " + business.phone +
+            " | Category: " + business.category +
+            " | Area: " + business.area;
+
+          const description = document.createElement("p");
+          description.textContent = business.description;
+
+          const approve = document.createElement("button");
+          approve.textContent = "Approve";
+
+          approve.style.cssText =
+            "background:#246b45;color:white;padding:10px 16px;" +
+            "border:0;border-radius:6px;margin-right:10px;cursor:pointer;";
+
+          const reject = document.createElement("button");
+          reject.textContent = "Reject";
+
+          reject.style.cssText =
+            "background:#a83232;color:white;padding:10px 16px;" +
+            "border:0;border-radius:6px;cursor:pointer;";
+
+          async function review(decision) {
+            const action =
+              decision === "approve" ? "approve" : "reject";
+
+            const confirmed = window.confirm(
+              "Are you sure you want to " + action + " " +
+              business.business_name + "?"
+            );
+
+            if (!confirmed) return;
+
+            approve.disabled = true;
+            reject.disabled = true;
+            message.textContent = "Processing review...";
+
+            const { data, error: reviewError } = await db.rpc(
+              "review_findlocal_business",
+              {
+                p_business_id: business.id,
+                p_decision: decision
+              }
+            );
+
+            if (reviewError) {
+              message.textContent =
+                "Review failed: " + reviewError.message;
+
+              approve.disabled = false;
+              reject.disabled = false;
+              return;
+            }
+
+            if (decision === "approve") {
+              message.textContent =
+                "Business approved. Founding slot: " +
+                (data && data.founding_slot
+                  ? data.founding_slot
+                  : "check database");
+            } else {
+              message.textContent = "Business rejected.";
+            }
+
+            await loadAdminDashboard();
+          }
+
+          approve.addEventListener("click", function() {
+            review("approve");
+          });
+
+          reject.addEventListener("click", function() {
+            review("reject");
+          });
+
+          card.append(
+            heading,
+            details,
+            description,
+            approve,
+            reject
+          );
+
+          list.appendChild(card);
+        });
       }
 
-      approve.addEventListener("click", function () {
-        review("approve", approve);
+      loadAdminDashboard();
+
+      db.auth.onAuthStateChange(function() {
+        loadAdminDashboard();
       });
-
-      reject.addEventListener("click", function () {
-        review("reject", reject);
-      });
-
-      card.append(heading, details, description, approve, reject);
-      list.appendChild(card);
-    });
-  }
-
-  loadAdminDashboard();
-
-  db.auth.onAuthStateChange(function () {
-    loadAdminDashboard();
-  });
-})();
-
+    })();
   </script>
 
-<!-- FindLocal Public Business Directory -->
-<section id="findlocal-directory" style="max-width:1100px;margin:40px auto;padding:24px;font-family:Arial,sans-serif;color:#203b2c;">
-  <h2 style="font-size:30px;margin-bottom:8px;">Find Local Businesses</h2>
-  <p>Discover businesses in your area and contact them directly.</p>
+  <!-- PUBLIC DIRECTORY SEARCH AND CONTACT TRACKING -->
+  <script>
+    (function() {
+      const searchInput = document.getElementById("fl-search");
+      const categorySelect = document.getElementById("fl-category");
+      const areaSelect = document.getElementById("fl-area");
+      const message = document.getElementById("fl-directory-message");
+      const results = document.getElementById("fl-business-results");
 
-  <input
-    id="fl-search"
-    type="search"
-    placeholder="Search business names or descriptions..."
-    style="width:100%;padding:12px;margin:12px 0;border:1px solid #ccd5ce;border-radius:8px;box-sizing:border-box;"
-  />
-
-  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;">
-    <select id="fl-category" style="flex:1;min-width:200px;padding:12px;border:1px solid #ccd5ce;border-radius:8px;">
-      <option value="">All categories</option>
-    </select>
-
-    <select id="fl-area" style="flex:1;min-width:200px;padding:12px;border:1px solid #ccd5ce;border-radius:8px;">
-      <option value="">All areas</option>
-    </select>
-  </div>
-
-  <p id="fl-directory-message">Loading approved businesses...</p>
-  <div id="fl-business-results" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;"></div>
-</section>
-
-<script>
-(function () {
-  const searchInput = document.getElementById("fl-search");
-  const categorySelect = document.getElementById("fl-category");
-  const areaSelect = document.getElementById("fl-area");
-  const message = document.getElementById("fl-directory-message");
-  const results = document.getElementById("fl-business-results");
-
-  if (!window.supabase || !window.db && typeof db === "undefined") {
-    message.textContent = "The directory connection is not available. Please refresh the page.";
-    return;
-  }
-
-  async function loadDirectory() {
-    message.textContent = "Loading approved businesses...";
-    results.replaceChildren();
-
-    const { data: businesses, error } = await db
-      .from("businesses")
-      .select("id,business_name,contact_name,phone,whatsapp,category,area,website,logo_url,description,insurer_claim,insurer_verified")
-      .eq("application_status", "approved")
-      .order("business_name", { ascending: true });
-
-    if (error) {
-      message.textContent = "We couldn't load businesses. Please refresh and try again.";
-      console.error("FindLocal directory error:", error);
-      return;
-    }
-
-    const categories = [...new Set(businesses.map(b => b.category).filter(Boolean))].sort();
-    const areas = [...new Set(businesses.map(b => b.area).filter(Boolean))].sort();
-
-    categories.forEach(category => {
-      const option = document.createElement("option");
-      option.value = category;
-      option.textContent = category;
-      categorySelect.appendChild(option);
-    });
-
-    areas.forEach(area => {
-      const option = document.createElement("option");
-      option.value = area;
-      option.textContent = area;
-      areaSelect.appendChild(option);
-    });
-
-    function renderResults() {
-      const term = searchInput.value.trim().toLowerCase();
-      const selectedCategory = categorySelect.value;
-      const selectedArea = areaSelect.value;
-
-      const filtered = businesses.filter(b => {
-        const searchable = [
-          b.business_name, b.description, b.category, b.area
-        ].filter(Boolean).join(" ").toLowerCase();
-
-        return searchable.includes(term) &&
-          (!selectedCategory || b.category === selectedCategory) &&
-          (!selectedArea || b.area === selectedArea);
-      });
-
-      results.replaceChildren();
-
-      if (filtered.length === 0) {
-        message.textContent = "No matching businesses found.";
+      if (!db) {
+        message.textContent =
+          "The directory connection is not available. Please refresh the page.";
         return;
       }
 
-      message.textContent = filtered.length + " business(es) found.";
+      async function loadDirectory() {
+        message.textContent = "Loading approved businesses...";
+        results.replaceChildren();
 
-      filtered.forEach(b => {
-        const card = document.createElement("article");
-        card.style.cssText = "border:1px solid #d5ded7;border-radius:12px;padding:18px;background:#fff;";
+        const { data: businesses, error } = await db
+          .from("businesses")
+          .select(
+            "id,business_name,contact_name,phone,whatsapp,category,area,website,logo_url,description,insurer_claim,insurer_verified"
+          )
+          .eq("application_status", "approved")
+          .order("business_name", { ascending: true });
 
-        if (b.logo_url) {
-          const logo = document.createElement("img");
-          logo.src = b.logo_url;
-          logo.alt = b.business_name + " logo";
-          logo.loading = "lazy";
-          logo.style.cssText = "max-width:100%;max-height:100px;object-fit:contain;margin-bottom:10px;";
-          card.appendChild(logo);
+        if (error) {
+          message.textContent =
+            "We couldn't load businesses. Please refresh and try again.";
+
+          console.error("FindLocal directory error:", error);
+          return;
         }
 
-        const heading = document.createElement("h3");
-        heading.textContent = b.business_name;
-        heading.style.cssText = "margin:0 0 8px;font-size:21px;";
-        card.appendChild(heading);
+        const approvedBusinesses = businesses || [];
 
-        const category = document.createElement("p");
-        category.textContent = b.category + " · " + b.area;
-        category.style.cssText = "color:#55705e;font-weight:bold;";
-        card.appendChild(category);
+        const categories = [
+          ...new Set(
+            approvedBusinesses
+              .map(b => b.category)
+              .filter(Boolean)
+          )
+        ].sort();
 
-        const description = document.createElement("p");
-        description.textContent = b.description;
-        card.appendChild(description);
+        const areas = [
+          ...new Set(
+            approvedBusinesses
+              .map(b => b.area)
+              .filter(Boolean)
+          )
+        ].sort();
 
-        if (b.insurer_verified && b.insurer_claim) {
-          const insurer = document.createElement("p");
-          insurer.textContent = "Verified affiliation: " + b.insurer_claim;
-          insurer.style.cssText = "color:#246b45;font-weight:bold;";
-          card.appendChild(insurer);
+        categories.forEach(function(category) {
+          const option = document.createElement("option");
+          option.value = category;
+          option.textContent = category;
+          categorySelect.appendChild(option);
+        });
+
+        areas.forEach(function(area) {
+          const option = document.createElement("option");
+          option.value = area;
+          option.textContent = area;
+          areaSelect.appendChild(option);
+        });
+
+        function renderResults() {
+          const term =
+            searchInput.value.trim().toLowerCase();
+
+          const selectedCategory = categorySelect.value;
+          const selectedArea = areaSelect.value;
+
+          const filtered = approvedBusinesses.filter(function(b) {
+            const searchable = [
+              b.business_name,
+              b.description,
+              b.category,
+              b.area
+            ]
+              .filter(Boolean)
+              .join(" ")
+              .toLowerCase();
+
+            return searchable.includes(term) &&
+              (!selectedCategory || b.category === selectedCategory) &&
+              (!selectedArea || b.area === selectedArea);
+          });
+
+          results.replaceChildren();
+
+          if (filtered.length === 0) {
+            message.textContent = approvedBusinesses.length === 0
+              ? "No approved businesses are listed yet. Please check back soon."
+              : "No matching businesses found.";
+
+            return;
+          }
+
+          message.textContent =
+            filtered.length + " business(es) found.";
+
+          filtered.forEach(function(b) {
+            const card = document.createElement("article");
+            card.className = "fl-business-card";
+
+            if (b.logo_url) {
+              const logo = document.createElement("img");
+
+              logo.src = b.logo_url;
+              logo.alt = b.business_name + " logo";
+              logo.loading = "lazy";
+
+              logo.onerror = function() {
+                logo.remove();
+              };
+
+              card.appendChild(logo);
+            }
+
+            const heading = document.createElement("h3");
+            heading.textContent = b.business_name;
+            card.appendChild(heading);
+
+            const category = document.createElement("p");
+            category.className = "fl-category-area";
+            category.textContent =
+              [b.category, b.area].filter(Boolean).join(" · ");
+
+            card.appendChild(category);
+
+            const description = document.createElement("p");
+            description.textContent = b.description || "";
+            card.appendChild(description);
+
+            if (b.insurer_verified && b.insurer_claim) {
+              const insurer = document.createElement("p");
+
+              insurer.textContent =
+                "Verified affiliation: " + b.insurer_claim;
+
+              insurer.style.cssText =
+                "color:#246b45;font-weight:bold;";
+
+              card.appendChild(insurer);
+            }
+
+            if (b.phone) {
+              const phoneLink = document.createElement("a");
+
+              phoneLink.href = "tel:" + b.phone;
+              phoneLink.textContent = "Call Business";
+              phoneLink.className = "fl-contact-link";
+
+              phoneLink.addEventListener("click", async function(event) {
+                event.preventDefault();
+
+                try {
+                  await db.rpc("record_findlocal_event", {
+                    p_business_id: b.id,
+                    p_event_type: "call_click"
+                  });
+                } catch (error) {
+                  console.error("Call tracking error:", error);
+                }
+
+                window.location.href = phoneLink.href;
+              });
+
+              card.appendChild(phoneLink);
+            }
+
+            const whatsappNumber =
+              (b.whatsapp || b.phone || "").replace(/\D/g, "");
+
+            if (whatsappNumber) {
+              const whatsappLink = document.createElement("a");
+
+              whatsappLink.href =
+                "https://wa.me/" + whatsappNumber;
+
+              whatsappLink.target = "_blank";
+              whatsappLink.rel = "noopener noreferrer";
+              whatsappLink.textContent = "WhatsApp";
+              whatsappLink.className = "fl-whatsapp-link";
+
+              whatsappLink.addEventListener(
+                "click",
+                async function(event) {
+                  event.preventDefault();
+
+                  try {
+                    await db.rpc("record_findlocal_event", {
+                      p_business_id: b.id,
+                      p_event_type: "whatsapp_click"
+                    });
+                  } catch (error) {
+                    console.error("WhatsApp tracking error:", error);
+                  }
+
+                  window.open(
+                    whatsappLink.href,
+                    "_blank",
+                    "noopener,noreferrer"
+                  );
+                }
+              );
+
+              card.appendChild(whatsappLink);
+            }
+
+            if (b.website) {
+              const website = document.createElement("a");
+
+              website.href = /^https?:\/\//i.test(b.website)
+                ? b.website
+                : "https://" + b.website;
+
+              website.target = "_blank";
+              website.rel = "noopener noreferrer";
+              website.textContent = "Visit Website";
+              website.className = "fl-website-link";
+
+              card.appendChild(website);
+            }
+
+            results.appendChild(card);
+          });
         }
 
-        
-const phoneLink = document.createElement("a");
-phoneLink.href = "tel:" + b.phone;
-phoneLink.textContent = "Call business";
-phoneLink.style.cssText = "display:inline-block;margin:8px 8px 0 0;padding:10px 12px;background:#246b45;color:white;border-radius:6px;text-decoration:none;";
+        searchInput.addEventListener("input", renderResults);
+        categorySelect.addEventListener("change", renderResults);
+        areaSelect.addEventListener("change", renderResults);
 
-phoneLink.addEventListener("click", async function(event) {
-  event.preventDefault();
+        renderResults();
+      }
 
-  try {
-    await db.rpc("record_findlocal_event", {
-      p_business_id: b.id,
-      p_event_type: "call_click"
-    });
-  } catch (error) {
-    console.error("Call tracking error:", error);
-  }
-
-  window.location.href = phoneLink.href;
-});
-
-card.appendChild(phoneLink);
-
-
-        
-const whatsappNumber = (b.whatsapp || b.phone || "").replace(/\D/g, "");
-if (whatsappNumber) {
-  const whatsappLink = document.createElement("a");
-  whatsappLink.href = "https://wa.me/" + whatsappNumber;
-  whatsappLink.target = "_blank";
-  whatsappLink.rel = "noopener noreferrer";
-  whatsappLink.textContent = "WhatsApp";
-  whatsappLink.style.cssText = "display:inline-block;margin:8px 0 0;padding:10px 12px;background:#e5f3e9;color:#203b2c;border-radius:6px;text-decoration:none;";
-
-  whatsappLink.addEventListener("click", async function(event) {
-    event.preventDefault();
-
-    try {
-      await db.rpc("record_findlocal_event", {
-        p_business_id: b.id,
-        p_event_type: "whatsapp_click"
-      });
-    } catch (error) {
-      console.error("WhatsApp tracking error:", error);
-    }
-
-    window.open(whatsappLink.href, "_blank", "noopener,noreferrer");
-  });
-
-  card.appendChild(whatsappLink);
-}
-
-
-        if (b.website) {
-          const website = document.createElement("a");
-          website.href = /^https?:\/\//i.test(b.website) ? b.website : "https://" + b.website;
-          website.target = "_blank";
-          website.rel = "noopener noreferrer";
-          website.textContent = "Visit website";
-          website.style.cssText = "display:block;margin-top:12px;";
-          card.appendChild(website);
-        }
-
-        results.appendChild(card);
-      });
-    }
-
-    searchInput.addEventListener("input", renderResults);
-    categorySelect.addEventListener("change", renderResults);
-    areaSelect.addEventListener("change", renderResults);
-    renderResults();
-  }
-
-  loadDirectory();
-})();
-</script>
+      loadDirectory();
+    })();
+  </script>
 
 </body>
 </html>
