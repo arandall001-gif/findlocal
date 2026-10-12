@@ -66,11 +66,20 @@
     </button>
   </header>
 
-  <section class="hero">
-    <h1>Discover local. Support local.</h1>
-    <p>Find businesses, services, creators and independent sellers in your community.</p>
-    <button class="green" onclick="showAccount()">List your business</button>
-  </section>
+  
+<section class="hero">
+  <h1>Find what you're looking for.</h1>
+  <p>Discover local businesses, services, creators and independent sellers in your community.</p>
+
+  <button class="green" onclick="document.getElementById('findlocal-directory').scrollIntoView({behavior:'smooth'})">
+    Explore Businesses
+  </button>
+
+  <button class="light" onclick="showAccount()">
+    List Your Business
+  </button>
+</section>
+
 
   <main>
     <section class="card">
